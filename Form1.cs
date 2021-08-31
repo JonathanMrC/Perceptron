@@ -42,18 +42,22 @@ namespace Perceptron
         Random r;
         float learningr;
         float px1 = 0, px2 = 0, py2 = 0, py1 =0 ;
-        bool terminado = false;
+        bool terminado = false, pesosGen = false;
         public Form1()
         {   
             InitializeComponent();
             CargarGrafico();
             dataset = new List<Data>();
-            //dataset.Add(new Data(new Coords(0,0, 0), 0));
             r = new Random();
         }
         
         private void Perceptron_Click(object sender, EventArgs e)
         {
+            if (!pesosGen)
+            {
+                MessageBox.Show("No ha generado los pesos...");
+                return;
+            }
             lblEpoca.Visible = true;
             int epocas = (int)Epocas.Value;
             learningr = (float)learningR.Value;
@@ -62,10 +66,11 @@ namespace Perceptron
                 Errores.Series["Errores"].Points.AddXY("Generación: "+iteracion, cur);
                 ActualizarRecta();
                 lblEpoca.Text = "Épocas Actual: "+iteracion;
+                lblEpoca.Refresh();
                 if (cur == 0) {
                     MessageBox.Show("Convergio en la iteracion : " + iteracion);
                     terminado = true;
-                     ActualizarRecta(true);
+                    ActualizarRecta(true);
                     return;
                 }
             }
@@ -104,7 +109,6 @@ namespace Perceptron
             for(int i = 0; i < n; ++i) {
 
                 int x = error(dataset[i]);
-               //     MessageBox.Show("" + i + " "+ dataset[i].clase +     " = " + x);
                 if(x != 0) {
                     acum += Math.Abs(x);
                     done = false;
@@ -130,26 +134,16 @@ namespace Perceptron
 
         private void button1_Click(object sender, EventArgs e)
         {
-            float temp = (float)r.NextDouble() + (float)r.Next(0, 6);
-            if (r.Next(0, 2) % 2 != 0) temp = -temp;
-            pesos.x = (float)0.1;
-
-            temp = (float)r.NextDouble() + (float)r.Next(0, 6);
-            if (r.Next(0, 2) % 2 != 0) temp = -temp;
-            pesos.y = (float)0.1;
-
-            // //dataset[0] = new Data(pesos, -1);
-
-            pesos.x = (float)1.1;
-            pesos.y = (float)1.1;
+            pesosGen = false;
+            pesos.x = 1;
+            pesos.y = 1;
 
             CargarGrafico();
 
             dataset.Clear();
             terminado = false;
             Errores.Series.Clear();
-            ActualizarRecta();
-
+            Errores.Series.Add("Errores");
         }
 
         public void ActualizarRecta(bool flag = false)
@@ -166,10 +160,10 @@ namespace Perceptron
             grafico.DrawLine(new Pen(Color.Black), x1, y1, x2, y2);
             if(flag) grafico.DrawLine(new Pen(Color.Red), x1, y1, x2, y2);
             picBox.Refresh();
-            //MessageBox.Show(""+dataset[0].Key.x+", "+dataset[0].Key.y);
         }
         private void InicializarPesos_Click(object sender, EventArgs e)
         {
+            pesosGen = true;
             float temp = (float)r.NextDouble() + (float)r.Next(0, 6);
             if (r.Next(0, 2) % 2 != 0) temp = -temp;
             pesos.x = temp;
@@ -178,8 +172,6 @@ namespace Perceptron
             if (r.Next(0, 2) % 2 != 0) temp = -temp;
             pesos.y = temp;
             
-            //pesos.x = (float)1.1;
-            //pesos.y = (float)1.1;
             ActualizarRecta();
         }
 
@@ -190,8 +182,6 @@ namespace Perceptron
             if (!terminado)
             {
                 p.b = 1;
-                MessageBox.Show("" + step(p));
-                MessageBox.Show("" + calc(p));
                 if (e.Button.Equals(MouseButtons.Right))
                 {
                     dataset.Add(new Data(p, 1));
@@ -202,7 +192,6 @@ namespace Perceptron
                     dataset.Add(new Data(p, 0));
                     grafico.FillEllipse(Brushes.Red, e.X - radio, e.Y - radio, radio << 1, radio << 1);
                 }
-                picBox.Refresh();
             }
             else
             {
@@ -215,6 +204,7 @@ namespace Perceptron
                     grafico.FillEllipse(Brushes.Red, e.X - radio, e.Y - radio, radio << 1, radio << 1);
                 }
             }
+            picBox.Refresh();
         }
 
         public void CargarGrafico()

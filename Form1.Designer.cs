@@ -30,22 +30,28 @@ namespace Perceptron
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.PanelDiv = new System.Windows.Forms.TableLayoutPanel();
             this.panelArriba = new System.Windows.Forms.Panel();
             this.lblEpoca = new System.Windows.Forms.Label();
             this.Perceptron = new System.Windows.Forms.Button();
             this.InicializarPesos = new System.Windows.Forms.Button();
-            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.Epocas = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.learningR = new System.Windows.Forms.NumericUpDown();
             this.picBox = new System.Windows.Forms.PictureBox();
             this.panelAbajo = new System.Windows.Forms.Panel();
+            this.Errores = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.PanelDiv.SuspendLayout();
             this.panelArriba.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.Epocas)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.learningR)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picBox)).BeginInit();
+            this.panelAbajo.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.Errores)).BeginInit();
             this.SuspendLayout();
             // 
             // PanelDiv
@@ -68,7 +74,7 @@ namespace Perceptron
             this.panelArriba.Controls.Add(this.lblEpoca);
             this.panelArriba.Controls.Add(this.Perceptron);
             this.panelArriba.Controls.Add(this.InicializarPesos);
-            this.panelArriba.Controls.Add(this.numericUpDown1);
+            this.panelArriba.Controls.Add(this.Epocas);
             this.panelArriba.Controls.Add(this.label2);
             this.panelArriba.Controls.Add(this.label1);
             this.panelArriba.Controls.Add(this.learningR);
@@ -114,30 +120,30 @@ namespace Perceptron
             this.InicializarPesos.UseVisualStyleBackColor = true;
             this.InicializarPesos.Click += new System.EventHandler(this.InicializarPesos_Click);
             // 
-            // numericUpDown1
+            // Epocas
             // 
-            this.numericUpDown1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.numericUpDown1.Increment = new decimal(new int[] {
+            this.Epocas.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.Epocas.Increment = new decimal(new int[] {
             100,
             0,
             0,
             0});
-            this.numericUpDown1.Location = new System.Drawing.Point(961, 49);
-            this.numericUpDown1.Maximum = new decimal(new int[] {
+            this.Epocas.Location = new System.Drawing.Point(961, 49);
+            this.Epocas.Maximum = new decimal(new int[] {
             100000,
             0,
             0,
             0});
-            this.numericUpDown1.Minimum = new decimal(new int[] {
+            this.Epocas.Minimum = new decimal(new int[] {
             1,
             0,
             0,
             0});
-            this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(94, 20);
-            this.numericUpDown1.TabIndex = 12;
-            this.numericUpDown1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.numericUpDown1.Value = new decimal(new int[] {
+            this.Epocas.Name = "Epocas";
+            this.Epocas.Size = new System.Drawing.Size(94, 20);
+            this.Epocas.TabIndex = 12;
+            this.Epocas.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.Epocas.Value = new decimal(new int[] {
             10,
             0,
             0,
@@ -210,12 +216,29 @@ namespace Perceptron
             // 
             // panelAbajo
             // 
+            this.panelAbajo.Controls.Add(this.Errores);
             this.panelAbajo.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelAbajo.Location = new System.Drawing.Point(0, 476);
             this.panelAbajo.Margin = new System.Windows.Forms.Padding(0);
             this.panelAbajo.Name = "panelAbajo";
             this.panelAbajo.Size = new System.Drawing.Size(1064, 205);
             this.panelAbajo.TabIndex = 1;
+            // 
+            // Errores
+            // 
+            chartArea2.Name = "ChartArea1";
+            this.Errores.ChartAreas.Add(chartArea2);
+            legend2.Name = "Legend1";
+            this.Errores.Legends.Add(legend2);
+            this.Errores.Location = new System.Drawing.Point(12, 16);
+            this.Errores.Name = "Errores";
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            this.Errores.Series.Add(series2);
+            this.Errores.Size = new System.Drawing.Size(1043, 177);
+            this.Errores.TabIndex = 0;
+            this.Errores.Text = "Errores";
             // 
             // Form1
             // 
@@ -228,13 +251,14 @@ namespace Perceptron
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Perceptrón";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.PanelDiv.ResumeLayout(false);
             this.panelArriba.ResumeLayout(false);
             this.panelArriba.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.Epocas)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.learningR)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picBox)).EndInit();
+            this.panelAbajo.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.Errores)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -246,12 +270,13 @@ namespace Perceptron
         private System.Windows.Forms.Label lblEpoca;
         private System.Windows.Forms.Button Perceptron;
         private System.Windows.Forms.Button InicializarPesos;
-        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.NumericUpDown Epocas;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NumericUpDown learningR;
         private System.Windows.Forms.PictureBox picBox;
         private System.Windows.Forms.Panel panelAbajo;
+        private System.Windows.Forms.DataVisualization.Charting.Chart Errores;
     }
 }
 

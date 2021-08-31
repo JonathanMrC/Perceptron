@@ -40,14 +40,15 @@ namespace Perceptron
         Coords pesos;
         List<Data> dataset;
         Random r;
-        int learningr;
-
+        float learningr;
+        float px1 = 0, px2 = 0, py2 = 0, py1 =0 ;
+        bool terminado = false;
         public Form1()
         {   
             InitializeComponent();
             CargarGrafico();
             dataset = new List<Data>();
-            dataset.Add(new Data(new Coords(0,0, 0), 0));
+            //dataset.Add(new Data(new Coords(0,0, 0), 0));
             r = new Random();
         }
         
@@ -55,12 +56,16 @@ namespace Perceptron
         {
             lblEpoca.Visible = true;
             int epocas = (int)Epocas.Value;
-            learningr = (int)learningR.Value;
+            learningr = (float)learningR.Value;
             for(int iteracion = 1; iteracion <= epocas; ++iteracion) {
-                bool cur = actualizar();
+                int cur = actualizar();
+                Errores.Series["Errores"].Points.AddXY("Generación: "+iteracion, cur);
                 ActualizarRecta();
-                if(cur) {
+                lblEpoca.Text = "Épocas Actual: "+iteracion;
+                if (cur == 0) {
                     MessageBox.Show("Convergio en la iteracion : " + iteracion);
+                    terminado = true;
+                     ActualizarRecta(true);
                     return;
                 }
             }
@@ -92,17 +97,22 @@ namespace Perceptron
             pesos.y += (d.y * x * learningr);
         }
 
-        public bool actualizar() {
+        public int actualizar() {
             int n = dataset.Count();
-            bool done = true;
+            bool done = true;   
+            int acum = 0;
             for(int i = 0; i < n; ++i) {
+
                 int x = error(dataset[i]);
+               //     MessageBox.Show("" + i + " "+ dataset[i].clase +     " = " + x);
                 if(x != 0) {
+                    acum += Math.Abs(x);
                     done = false;
-                    update(dataset[i].coord, x);
+                    update(dataset[i].coord, (float)x);
+                    ActualizarRecta();
                 }
             }
-            return done;
+            return acum;
         }
 
         public Coords CoordenadasReales(Coords ans)
@@ -114,11 +124,35 @@ namespace Perceptron
         }
 
         float eval(float num) {
-            float y = (pesos.b - (pesos.x * num)) / pesos.y;
+            float y = (-pesos.b - (pesos.x * num)) / pesos.y;
             return y;
         }
 
-        public void ActualizarRecta()
+        private void button1_Click(object sender, EventArgs e)
+        {
+            float temp = (float)r.NextDouble() + (float)r.Next(0, 6);
+            if (r.Next(0, 2) % 2 != 0) temp = -temp;
+            pesos.x = (float)0.1;
+
+            temp = (float)r.NextDouble() + (float)r.Next(0, 6);
+            if (r.Next(0, 2) % 2 != 0) temp = -temp;
+            pesos.y = (float)0.1;
+
+            // //dataset[0] = new Data(pesos, -1);
+
+            pesos.x = (float)1.1;
+            pesos.y = (float)1.1;
+
+            CargarGrafico();
+
+            dataset.Clear();
+            terminado = false;
+            Errores.Series.Clear();
+            ActualizarRecta();
+
+        }
+
+        public void ActualizarRecta(bool flag = false)
         {
             Coords c = CoordenadasReales(new Coords(0,-5, eval(-5)));
             Coords c2 = CoordenadasReales(new Coords(0, 5, eval(5)));
@@ -126,9 +160,11 @@ namespace Perceptron
             float y1 = c.y;
             float x2 = c2.x;
             float y2 = c2.y;
-            
+            //
+            grafico.DrawLine(new Pen(Color.White), px1, py1, px2, py2);
+            px1 = x1; py2 = y2; px2 = x2; py2 = y2;
             grafico.DrawLine(new Pen(Color.Black), x1, y1, x2, y2);
-            
+            if(flag) grafico.DrawLine(new Pen(Color.Red), x1, y1, x2, y2);
             picBox.Refresh();
             //MessageBox.Show(""+dataset[0].Key.x+", "+dataset[0].Key.y);
         }
@@ -136,38 +172,51 @@ namespace Perceptron
         {
             float temp = (float)r.NextDouble() + (float)r.Next(0, 6);
             if (r.Next(0, 2) % 2 != 0) temp = -temp;
-            pesos.x = (float)0.1;
+            pesos.x = temp;
 
             temp = (float)r.NextDouble()  + (float)r.Next(0, 6);
             if (r.Next(0, 2) % 2 != 0) temp = -temp;
-            pesos.y = (float)0.1;
-
-            dataset[0] = new Data(pesos, -1);
+            pesos.y = temp;
             
-             pesos.x = (float)1.1;
-               pesos.y = (float)1.1;
+            //pesos.x = (float)1.1;
+            //pesos.y = (float)1.1;
             ActualizarRecta();
         }
 
         private void picBox_MouseClick(object sender, MouseEventArgs e)
         {
             int radio = 10;
-            Coords p = new Coords(1,(e.X - (picBox.Width >> 1)) / escalaX, ((e.Y / escalaY) - 5) * -1);
-            p.b = 1;
-            MessageBox.Show(""+calc(p));
-            if (e.Button.Equals(MouseButtons.Right))
+            Coords p = new Coords(1, (e.X - (picBox.Width >> 1)) / escalaX, ((e.Y / escalaY) - 5) * -1);
+            if (!terminado)
             {
-                dataset.Add(new Data(p, 1));
-                grafico.FillRectangle(Brushes.Blue, e.X - radio, e.Y - radio, radio << 1, radio << 1);
+                p.b = 1;
+                MessageBox.Show("" + step(p));
+                MessageBox.Show("" + calc(p));
+                if (e.Button.Equals(MouseButtons.Right))
+                {
+                    dataset.Add(new Data(p, 1));
+                    grafico.FillRectangle(Brushes.Blue, e.X - radio, e.Y - radio, radio << 1, radio << 1);
+                }
+                else
+                {
+                    dataset.Add(new Data(p, 0));
+                    grafico.FillEllipse(Brushes.Red, e.X - radio, e.Y - radio, radio << 1, radio << 1);
+                }
+                picBox.Refresh();
             }
             else
             {
-                dataset.Add(new Data(p, 0));
-                grafico.FillEllipse(Brushes.Red, e.X - radio, e.Y - radio, radio << 1, radio << 1);
+                if (step(p)==1)
+                {
+                    grafico.FillRectangle(Brushes.Blue, e.X - radio, e.Y - radio, radio << 1, radio << 1);
+                }
+                else
+                {
+                    grafico.FillEllipse(Brushes.Red, e.X - radio, e.Y - radio, radio << 1, radio << 1);
+                }
             }
-            picBox.Refresh();
         }
-        
+
         public void CargarGrafico()
         {
             btmp = new Bitmap(picBox.Width, picBox.Height);

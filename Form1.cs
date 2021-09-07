@@ -41,6 +41,7 @@ namespace Perceptron
         List<Data> dataset;
         Random r;
         float learningr;
+        int radio;
         bool convergeA = false, convergeP = false, pesosGen = false;
         public Form1()
         {   
@@ -63,6 +64,12 @@ namespace Perceptron
             val += current.x * pesosA.x;
             val += current.y * pesosA.y;
             return val;
+        }
+
+        int classify(Coords current) {
+            float cur = calcA(current);
+            if(cur < 0) return 0;
+            return 1;
         }
   
         float calcError(Data current) {
@@ -145,6 +152,8 @@ namespace Perceptron
             return y;
         }
 
+        
+
         private void AdalineClick(object sender, EventArgs e)
         {
             if (!pesosGen)
@@ -168,11 +177,26 @@ namespace Perceptron
                     MessageBox.Show("Convergio en la iteracion : " + iteracion);
                     convergeA = true;
                     ActualizarRecta();
+                    ReShow();
                     return;
                 }
                 //MessageBox.Show("" + learningr + "pesos " + pesosA.b + " " + pesosA.x + " ");
             }
             MessageBox.Show("No se pudo converger");
+        }
+
+        public void ReShow()
+        {
+            //graficoTemporal.Clear(Color.Transparent);
+            foreach(Data objeto in dataset)
+            {
+                Coords c = CoordenadasReales(objeto.coord);
+                if (classify(objeto.coord) == 1)
+                    graficoTemporal.DrawRectangle(new Pen(Color.Navy, 3), c.x - radio, c.y - radio, radio << 1, radio << 1);
+                else 
+                    graficoTemporal.DrawEllipse(new Pen(Color.Pink, 3), c.x - radio, c.y - radio, radio << 1, radio << 1);
+            }
+            picBox.Refresh();
         }
 
         private void PerceptronClick(object sender, EventArgs e)
@@ -277,10 +301,10 @@ namespace Perceptron
 
         private void picBox_MouseClick(object sender, MouseEventArgs e)
         {
-            int radio = 10;
+            radio = 10;
             Coords p = new Coords(1, (e.X - (picBox.Width >> 1)) / escalaX, ((e.Y / escalaY) - 1) * -1);
             //MessageBox.Show(""+p.x+", "+p.y);
-            if (!convergeP)
+            if (!convergeA)
             {
                 p.b = 1;
                 if (e.Button.Equals(MouseButtons.Right))
@@ -296,7 +320,7 @@ namespace Perceptron
             }
             else
             {
-                if (step(p)==1)
+                if (classify(p)==1)
                 {
                     grafico.FillRectangle(Brushes.Blue, e.X - radio, e.Y - radio, radio << 1, radio << 1);
                 }

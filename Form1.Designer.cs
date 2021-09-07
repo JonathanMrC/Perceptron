@@ -30,10 +30,10 @@ namespace Perceptron
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title5 = new System.Windows.Forms.DataVisualization.Charting.Title();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Title title1 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.PanelDiv = new System.Windows.Forms.TableLayoutPanel();
             this.panelArriba = new System.Windows.Forms.Panel();
             this.ErrorDeseado = new System.Windows.Forms.NumericUpDown();
@@ -99,7 +99,7 @@ namespace Perceptron
             // ErrorDeseado
             // 
             this.ErrorDeseado.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ErrorDeseado.DecimalPlaces = 1;
+            this.ErrorDeseado.DecimalPlaces = 2;
             this.ErrorDeseado.Increment = new decimal(new int[] {
             1,
             0,
@@ -307,22 +307,22 @@ namespace Perceptron
             // 
             // Errores
             // 
-            chartArea5.Name = "ChartArea1";
-            this.Errores.ChartAreas.Add(chartArea5);
-            legend5.Name = "Legend1";
-            this.Errores.Legends.Add(legend5);
+            chartArea1.Name = "ChartArea1";
+            this.Errores.ChartAreas.Add(chartArea1);
+            legend1.Name = "Legend1";
+            this.Errores.Legends.Add(legend1);
             this.Errores.Location = new System.Drawing.Point(12, 16);
             this.Errores.Name = "Errores";
-            series5.ChartArea = "ChartArea1";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series5.Legend = "Legend1";
-            series5.Name = "Adaline";
-            this.Errores.Series.Add(series5);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series1.Legend = "Legend1";
+            series1.Name = "Adaline";
+            this.Errores.Series.Add(series1);
             this.Errores.Size = new System.Drawing.Size(1043, 177);
             this.Errores.TabIndex = 0;
             this.Errores.Text = "Errores";
-            title5.Name = "Errores por generación";
-            this.Errores.Titles.Add(title5);
+            title1.Name = "Errores por generación";
+            this.Errores.Titles.Add(title1);
             // 
             // Form1
             // 

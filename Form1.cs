@@ -16,9 +16,9 @@ namespace Perceptron
         {
             public float b, x, y;
 
-            public Coords(float _b, float _x, float _y)
+            public Coords(float _b = 1, float _x = 1, float _y = 1)
             {
-                b = 1;
+                b = _b;
                 x = _x;
                 y = _y;
             }
@@ -34,15 +34,14 @@ namespace Perceptron
                 clase = _clase;
             }
         }
-        Graphics grafico;
-        Bitmap btmp;
+        Graphics grafico, graficoTemporal;
+        Bitmap btmpFondo, btmpTemporal;
         float escalaX, escalaY;
-        Coords pesos;
+        Coords pesosP, pesosA;
         List<Data> dataset;
         Random r;
         float learningr;
-        float px1 = 0, px2 = 0, py2 = 0, py1 =0 ;
-        bool terminado = false, pesosGen = false;
+        bool convergeA = false, convergeP = false, pesosGen = false;
         public Form1()
         {   
             InitializeComponent();
@@ -51,40 +50,28 @@ namespace Perceptron
             r = new Random();
         }
         
-        private void Perceptron_Click(object sender, EventArgs e)
+         float calc(Coords current) 
         {
-            if (!pesosGen)
-            {
-                MessageBox.Show("No ha generado los pesos...");
-                return;
-            }
-            lblEpoca.Visible = true;
-            int epocas = (int)Epocas.Value;
-            learningr = (float)learningR.Value;
-            for(int iteracion = 1; iteracion <= epocas; ++iteracion) {
-                int cur = actualizar();
-                Errores.Series["Errores"].Points.AddXY("Generación: "+iteracion, cur);
-                ActualizarRecta();
-                lblEpoca.Text = "Épocas Actual: "+iteracion;
-                lblEpoca.Refresh();
-                if (cur == 0) {
-                    MessageBox.Show("Convergio en la iteracion : " + iteracion);
-                    terminado = true;
-                    ActualizarRecta(true);
-                    return;
-                }
-            }
-            MessageBox.Show("No se pudo converger");
-        }
-
-        float calc(Coords current) 
-        {
-            float val = current.b * pesos.b;
-            val += current.x * pesos.x;
-            val += current.y * pesos.y;
+            float val = current.b * pesosP.b;
+            val += current.x * pesosP.x;
+            val += current.y * pesosP.y;
             return val;
         }
-        
+        float calcA(Coords current) 
+        {
+            float val = current.b * pesosA.b;
+            val += current.x * pesosA.x;
+            val += current.y * pesosA.y;
+            return val;
+        }
+  
+        float calcError(Data current) {
+            float deseada;
+            if(current.clase == 1) deseada = (float)0.5;
+            else deseada = (float)-0.5;
+            return deseada - calcA(current.coord);
+        }
+       
         int step(Coords current) {
             if (calc(current) >= (float)0)
                 return 1;
@@ -97,21 +84,40 @@ namespace Perceptron
         }
         
         void update(Coords d, float x) {
-            pesos.b += (d.b * x * learningr);
-            pesos.x += (d.x * x * learningr);
-            pesos.y += (d.y * x * learningr);
+            pesosP.b += (d.b * (x * learningr));
+            pesosP.x += (d.x * x * learningr);
+            pesosP.y += (d.y * x * learningr);
+        }
+
+        void updateA(Coords d, float x) {
+            pesosA.b += (d.b * x * learningr);
+            pesosA.x += (d.x * x * learningr);
+            pesosA.y += (d.y * x * learningr);
+        }
+
+        public float actualizarA() {
+            int n = dataset.Count();
+            float acum = 0;
+            for(int i = 0; i < n; ++i) {
+
+                float x = calcError(dataset[i]);
+                acum += x * x;
+                if(x != 0) {
+                    updateA(dataset[i].coord, (float)x);
+                    ActualizarRecta();
+                }
+            }
+            return acum;
         }
 
         public int actualizar() {
             int n = dataset.Count();
-            bool done = true;   
             int acum = 0;
             for(int i = 0; i < n; ++i) {
 
                 int x = error(dataset[i]);
                 if(x != 0) {
                     acum += Math.Abs(x);
-                    done = false;
                     update(dataset[i].coord, (float)x);
                     ActualizarRecta();
                 }
@@ -121,56 +127,150 @@ namespace Perceptron
 
         public Coords CoordenadasReales(Coords ans)
         {
-
             ans.x = (ans.x * escalaX)+(picBox.Width >> 1);
-            ans.y = (-ans.y +5)*(escalaY);
+            ans.y = (-ans.y +1)*(escalaY);
             return ans;
         }
 
-        float eval(float num) {
-            float y = (-pesos.b - (pesos.x * num)) / pesos.y;
+        float evalP(float num) {
+            float y;
+            if(pesosP.y == 0) return 0;
+            y = (-pesosP.b - (pesosP.x * num)) / pesosP.y;
+            return y;
+        }
+        float evalA(float num) {
+            float y;
+            if(pesosA.y == 0) return 0;
+            y = (-pesosA.b - (pesosA.x * num)) / pesosA.y;
             return y;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void AdalineClick(object sender, EventArgs e)
         {
-            pesosGen = false;
-            pesos.x = 1;
-            pesos.y = 1;
-
-            CargarGrafico();
-
-            dataset.Clear();
-            terminado = false;
-            Errores.Series.Clear();
-            Errores.Series.Add("Errores");
+            if (!pesosGen)
+            {
+                MessageBox.Show("No ha generado los pesos...");
+                return;
+            }
+            lblEpoca.Visible = true;
+            int epocas = (int)Epocas.Value;
+            learningr = (float)learningR.Value;
+            float minError = (float)ErrorDeseado.Value;
+            for (int iteracion = 1; iteracion <= epocas; ++iteracion)
+            {
+                float errores = actualizarA() / (float)dataset.Count;
+                Errores.Series["Adaline"].Points.AddXY("Generación: " + iteracion, errores);
+                ActualizarRecta();
+                lblEpoca.Text = "Época Actual: " + iteracion;
+                lblEpoca.Refresh();
+                if (errores < minError)
+                {
+                    MessageBox.Show("Convergio en la iteracion : " + iteracion);
+                    convergeA = true;
+                    ActualizarRecta();
+                    return;
+                }
+                //MessageBox.Show("" + learningr + "pesos " + pesosA.b + " " + pesosA.x + " ");
+            }
+            MessageBox.Show("No se pudo converger");
         }
 
-        public void ActualizarRecta(bool flag = false)
+        private void PerceptronClick(object sender, EventArgs e)
         {
-            Coords c = CoordenadasReales(new Coords(0,-5, eval(-5)));
-            Coords c2 = CoordenadasReales(new Coords(0, 5, eval(5)));
-            float x1 = c.x;
-            float y1 = c.y;
-            float x2 = c2.x;
-            float y2 = c2.y;
-            //
-            grafico.DrawLine(new Pen(Color.White), px1, py1, px2, py2);
-            px1 = x1; py2 = y2; px2 = x2; py2 = y2;
-            grafico.DrawLine(new Pen(Color.Black), x1, y1, x2, y2);
-            if(flag) grafico.DrawLine(new Pen(Color.Red), x1, y1, x2, y2);
+            if (!pesosGen)
+            {
+                MessageBox.Show("No ha generado los pesos...");
+                return;
+            }
+            lblEpoca.Visible = true;
+            int epocas = (int)Epocas.Value;
+            learningr = (float)learningR.Value;
+            for (int iteracion = 1; iteracion <= epocas; ++iteracion)
+            {
+                int errores = actualizar();
+                //Errores.Series["Perceptron"].Points.AddXY("Generación: " + iteracion, errores);
+                ActualizarRecta();
+                lblEpoca.Text = "Época Actual: " + iteracion;
+                lblEpoca.Refresh();
+                if (errores == 0)
+                {
+                    MessageBox.Show("Convergio en la iteracion : " + iteracion);
+                    convergeP = true;
+                    ActualizarRecta();
+                    return;
+                }
+            }
+            MessageBox.Show("No se pudo converger");
+        }
+
+        private void ResetClick(object sender, EventArgs e)
+        {
+            CargarGrafico();
+            pesosGen = false;
+            lblEpoca.Visible = false;
+            convergeP = false;
+            convergeA = false;
+            dataset.Clear();
+            
+            pesosP.x = 1;
+            pesosP.y = 1;
+            
+            pesosA.x = 1;
+            pesosA.y = 1;
+
+            //Errores.Series["Perceptron"].Points.Clear();
+            Errores.Series["Adaline"].Points.Clear();
+        }
+
+        public void ActualizarRecta()
+        {
+            graficoTemporal.Clear(Color.Transparent);
+            RectaA();
+            RectaP();
             picBox.Refresh();
         }
+
+        public void RectaP()
+        {
+            Coords c = CoordenadasReales(new Coords(0, -1, evalP(-1)));
+            Coords c2 = CoordenadasReales(new Coords(0, 1, evalP(1)));
+            float x1 = c.x, y1 = c.y, x2 = c2.x, y2 = c2.y;
+            Pen p = new Pen(Color.Blue);//(Color.FromArgb(255, 192, 128));//el color del boton perceptron;
+
+            if (convergeP)
+                grafico.DrawLine(p, x1, y1, x2, y2);
+            else graficoTemporal.DrawLine(p, x1, y1, x2, y2);
+        }
+        public void RectaA()
+        {
+            Coords c = CoordenadasReales(new Coords(0, -1, evalA(-1)));
+            Coords c2 = CoordenadasReales(new Coords(0, 1, evalA(1)));
+            float x1 = c.x, y1 = c.y, x2 = c2.x, y2 = c2.y;
+            Pen p = new Pen(Color.Orange);//(Color.FromArgb(128, 128, 255));//el color del boton adaline
+
+            if (convergeA)
+                grafico.DrawLine(p, x1, y1, x2, y2);
+            else graficoTemporal.DrawLine(p, x1, y1, x2, y2);
+        }
+
         private void InicializarPesos_Click(object sender, EventArgs e)
         {
             pesosGen = true;
-            float temp = (float)r.NextDouble() + (float)r.Next(0, 6);
+            float temp = (float)r.NextDouble()/2;
             if (r.Next(0, 2) % 2 != 0) temp = -temp;
-            pesos.x = temp;
+            pesosP.x = temp;
 
-            temp = (float)r.NextDouble()  + (float)r.Next(0, 6);
+            temp = (float)r.NextDouble()/2;
             if (r.Next(0, 2) % 2 != 0) temp = -temp;
-            pesos.y = temp;
+            pesosP.y = temp;
+            
+            temp = (float)r.NextDouble()/2;
+            if (r.Next(0, 2) % 2 != 0) temp = -temp;
+            pesosA.x = temp;
+
+            temp = (float)r.NextDouble()/2;
+            if (r.Next(0, 2) % 2 != 0) temp = -temp;
+            pesosA.y = temp;
             
             ActualizarRecta();
         }
@@ -178,8 +278,9 @@ namespace Perceptron
         private void picBox_MouseClick(object sender, MouseEventArgs e)
         {
             int radio = 10;
-            Coords p = new Coords(1, (e.X - (picBox.Width >> 1)) / escalaX, ((e.Y / escalaY) - 5) * -1);
-            if (!terminado)
+            Coords p = new Coords(1, (e.X - (picBox.Width >> 1)) / escalaX, ((e.Y / escalaY) - 1) * -1);
+            //MessageBox.Show(""+p.x+", "+p.y);
+            if (!convergeP)
             {
                 p.b = 1;
                 if (e.Button.Equals(MouseButtons.Right))
@@ -208,28 +309,38 @@ namespace Perceptron
         }
 
         public void CargarGrafico()
-        {
-            btmp = new Bitmap(picBox.Width, picBox.Height);
-            grafico = Graphics.FromImage(btmp);
+        { 
+            //fondo del picturebox
+            btmpFondo = new Bitmap(picBox.Width, picBox.Height);
+            grafico = Graphics.FromImage(btmpFondo);
             grafico.Clear(Color.White);
+
+            //grafico temporal
+            btmpTemporal = new Bitmap(picBox.Width, picBox.Height);
+            graficoTemporal = Graphics.FromImage(btmpTemporal);
+            graficoTemporal.Clear(Color.Transparent);
+
             //dibuja el eje
             grafico.DrawLine(new Pen(Color.Black), picBox.Width >> 1, 0, picBox.Width >> 1, picBox.Height);
             grafico.DrawLine(new Pen(Color.Black), 0, picBox.Height >> 1, picBox.Width, picBox.Height >> 1);
             
-            picBox.Image = btmp;
+            //se asigna al fondo
+            picBox.BackgroundImage = btmpFondo;
+            picBox.Image = btmpTemporal;
 
             //dibujar la escala
-            escalaX = picBox.Width / 10;
-            escalaY = picBox.Height / 10;
+            escalaX = picBox.Width / 2;
+            escalaY = picBox.Height / 2;
 
-            for (int i = 0; i < 10; ++i)
+            for (int i = 0; i < 2; ++i)
             {
                 grafico.DrawLine(new Pen(Color.Blue), escalaX * i, (picBox.Height >> 1) -5, escalaX * i, (picBox.Height >> 1)+5);
                 grafico.DrawLine(new Pen(Color.Blue), (picBox.Width >> 1)-5, escalaY * i, (picBox.Width >> 1)+5, escalaY * i);
                 //dibujar las etiquetas
-                grafico.DrawString("" + (i - 5), new Font("Arial", 10), new SolidBrush(Color.Black), escalaX * i, picBox.Height >> 1);
-                grafico.DrawString("" + (i - 5)*-1, new Font("Arial", 10), new SolidBrush(Color.Black), picBox.Width >> 1, escalaY * i);
+                grafico.DrawString("" + (i - 1), new Font("Arial", 10), new SolidBrush(Color.Black), escalaX * i, picBox.Height >> 1);
+                grafico.DrawString("" + (i - 1)*-1, new Font("Arial", 10), new SolidBrush(Color.Black), picBox.Width >> 1, escalaY * i);
             }
+            picBox.Refresh();
         }
     }
 }
